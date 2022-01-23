@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class Selection : MonoBehaviour
 {
     [SerializeField] private RectTransform selectionBox;
+    [SerializeField] private BoxCollider2D col;
     private Vector2 _reference;
     private float _offset;
     private Vector2 _startPos;
@@ -45,6 +46,11 @@ public class Selection : MonoBehaviour
         var pos =
             _startPos + new Vector2(width / 2, height / 2);
 
+        col.size = size;
+        col.offset = new Vector2(
+            pos.x - (_reference.x / 2),
+            pos.y - (_reference.y / 2));
+        
         selectionBox.sizeDelta = size;
         selectionBox.anchoredPosition = pos;
     }
@@ -52,5 +58,17 @@ public class Selection : MonoBehaviour
     private void Release()
     {
         selectionBox.gameObject.SetActive(false);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if(other.GetComponent<Selectable>()!=null)
+            other.GetComponent<Selectable>().ToggleSelect(true);
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if(other.GetComponent<Selectable>()!=null)
+            other.GetComponent<Selectable>().ToggleSelect(false);
     }
 }
