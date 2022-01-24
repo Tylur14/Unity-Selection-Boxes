@@ -8,6 +8,7 @@ public class Selection : MonoBehaviour
 {
     [SerializeField] private RectTransform selectionBox;
     [SerializeField] private BoxCollider2D col;
+    [SerializeField] private List<Selectable> selectedItems;
     private Vector2 _reference;
     private float _offset;
     private Vector2 _startPos;
@@ -15,16 +16,15 @@ public class Selection : MonoBehaviour
     private void Awake()
     {
         _reference = FindObjectOfType<CanvasScaler>().referenceResolution;
-        
+        Release();
+        Reset();
     }
 
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            _offset =
-                _reference.x / Screen.width;
-            _startPos = Input.mousePosition * _offset;
+            Reset();
         }
         
         if(Input.GetMouseButton(0))
@@ -60,15 +60,36 @@ public class Selection : MonoBehaviour
         selectionBox.gameObject.SetActive(false);
     }
 
+    private void Reset()
+    {
+        _offset =
+            _reference.x / Screen.width;
+        _startPos = Input.mousePosition * _offset;
+        
+        foreach(var s in selectedItems)
+            s.ToggleSelect(false);
+        selectedItems.Clear();
+        
+        col.size = Vector2.zero;
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if(other.GetComponent<Selectable>()!=null)
-            other.GetComponent<Selectable>().ToggleSelect(true);
+        if (other.GetComponent<Selectable>() == null) return;
+        
+        var s = other.GetComponent<Selectable>();
+        if (selectedItems.Contains(s)) return;
+        s.ToggleSelect(true);
+        selectedItems.Add(s);
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if(other.GetComponent<Selectable>()!=null)
-            other.GetComponent<Selectable>().ToggleSelect(false);
+        if (other.GetComponent<Selectable>() == null) return;
+        
+        var s = other.GetComponent<Selectable>();
+        if (!selectedItems.Contains(s)) return;
+        s.ToggleSelect(false);
+        selectedItems.Remove(s);
     }
 }
